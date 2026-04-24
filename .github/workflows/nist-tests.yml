@@ -1,0 +1,198 @@
+name: Randomness Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      streams:
+        description: "Number of NIST 800-22 Python streams (max 89)"
+        default: "89"
+        required: false
+
+env:
+  DATA_FILE: v2_submission/data/v2_random_sample.bin
+
+jobs:
+  # ── Job 1: Python test suite (NIST 800-22 style, 800-90B, Dieharder, AIS 31) ──
+  python-tests:
+    name: Python Entropy Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set stream count
+        id: streams
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "count=${{ github.event.inputs.streams }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "count=89" >> "$GITHUB_OUTPUT"
+          else
+            echo "count=20" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Python entropy tests
+        run: |
+          python tests/entropy_tests.py \
+            --file "$DATA_FILE" \
+            --streams ${{ steps.streams.outputs.count }} \
+            --output ci_results/python/
+
+      - name: Upload Python results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-entropy-results-${{ github.sha }}
+          path: ci_results/python/results.json
+          retention-days: 90
+
+  # ── Job 2: Official NIST STS C implementation (SP 800-22, all 15 tests) ─────
+  official-sts:
+    name: Official NIST STS (C)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt-get install -y gcc make
+
+      - name: Clone and build NIST STS
+        run: |
+          git clone --depth=1 https://github.com/arcetri/sts sts-src
+          # 'make legacy' uses built-in FFT — no fftw3 needed
+          cd sts-src && make legacy
+
+      - name: Compute max stream count from file size
+        id: sts_streams
+        run: |
+          BYTES=$(wc -c < "$DATA_FILE")
+          STREAMS=$(( (BYTES * 8) / 1048576 ))
+          # PR: 20 streams (fast); main/dispatch: all available
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || \
+             [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "count=$STREAMS" >> "$GITHUB_OUTPUT"
+          else
+            echo "count=20" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run official NIST STS
+        run: |
+          bash tests/run_sts.sh \
+            "$DATA_FILE" \
+            sts-src/sts_legacy_fft \
+            ${{ steps.sts_streams.outputs.count }} \
+            ci_results/sts/
+
+      - name: Upload STS result.txt
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: official-sts-results-${{ github.sha }}
+          path: ci_results/sts/result.txt
+          retention-days: 90
+
+      - name: Annotate on failure
+        if: failure()
+        run: echo "::error::Official NIST STS FAILED — see result.txt artifact."
+
+  # ── Job 3: Security / attack-resistance tests ────────────────────────────────
+  security-tests:
+    name: Security Attack Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run security tests
+        run: |
+          # ML test is skipped on PRs (slow); runs fully on main and dispatch
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || \
+             [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ML_FLAG=""
+          else
+            ML_FLAG="--skip-ml"
+          fi
+          python tests/security_tests.py \
+            --file "$DATA_FILE" \
+            --output ci_results/security/ \
+            $ML_FLAG
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results-${{ github.sha }}
+          path: ci_results/security/security_results.json
+          retention-days: 90
+
+      - name: Annotate on failure
+        if: failure()
+        run: echo "::error::Security tests FAILED — entropy source may be distinguishable."
+
+  # ── Job 4: Official NIST SP 800-90B C tools (ea_iid + ea_non_iid) ───────────
+  nist-800-90b:
+    name: NIST SP 800-90B (C)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get install -y --no-install-recommends \
+            g++ make git ca-certificates \
+            libdivsufsort-dev libbz2-dev libssl-dev \
+            libjsoncpp-dev libmpfr-dev libgmp-dev
+
+      - name: Clone and build SP 800-90B tools
+        run: |
+          git clone --depth=1 \
+            https://github.com/usnistgov/SP800-90B_EntropyAssessment ea-src
+          cd ea-src/cpp && make iid non_iid
+          echo "$(pwd)" >> "$GITHUB_PATH"
+
+      - name: Run ea_iid + ea_non_iid
+        run: |
+          bash tests/run_ea90b.sh \
+            "$DATA_FILE" \
+            8 \
+            ci_results/ea90b/
+
+      - name: Upload 800-90B logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nist-800-90b-results-${{ github.sha }}
+          path: ci_results/ea90b/
+          retention-days: 90
+
+      - name: Annotate on failure
+        if: failure()
+        run: echo "::error::NIST SP 800-90B FAILED — min-entropy below threshold or IID failed."

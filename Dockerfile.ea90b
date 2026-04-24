@@ -1,0 +1,15 @@
+FROM ubuntu:24.04
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    ca-certificates g++ make git \
+    libdivsufsort-dev libbz2-dev libssl-dev libjsoncpp-dev libmpfr-dev libgmp-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth=1 https://github.com/usnistgov/SP800-90B_EntropyAssessment /ea \
+    && cd /ea/cpp \
+    && make iid non_iid \
+    && cp ea_iid ea_non_iid /usr/local/bin/
+
+WORKDIR /data
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["ea_iid -v data.bin 8 && ea_non_iid -v data.bin 8"]

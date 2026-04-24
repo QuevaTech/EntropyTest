@@ -43,4 +43,4 @@ We are offering a bounty to anyone who can successfully "break" this generator.
 | - | - | - |
 
 ---
-*Powered by RF Noise Entropy · Neural Conditioning · Keccak (SHAKE-256)*
+*Powered by Deep Neural Stochastic Processes & Keccak*
