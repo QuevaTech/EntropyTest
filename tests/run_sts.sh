@@ -24,6 +24,7 @@ fi
 
 # ── Run sts ──────────────────────────────────────────────────────────────────
 mkdir -p "$WORK_DIR"
+WORK_DIR="$(cd "$WORK_DIR" && pwd)"   # normalize: remove trailing slash / relative refs
 
 echo "[STS] Running: $STS_BIN -i $ITERATIONS -w $WORK_DIR -s -F r $DATA_FILE"
 "$STS_BIN" -v 1 -i "$ITERATIONS" -I 20 -w "$WORK_DIR" -s -F r "$DATA_FILE"
