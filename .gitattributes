@@ -1,0 +1,2 @@
+# binary sample: never diff, never line-ending convert
+*.bin binary -text -diff
