@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="290" viewBox="0 0 1100 290" role="img" aria-label="Entropy source architecture">
+  <rect width="1100" height="290" fill="#0c0d11"/>
+  <g font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace">
+    <text x="40" y="46" fill="#8b8f9e" font-size="10.5" letter-spacing="3.4">ENTROPY SOURCE · THREE LAYERS</text>
+    <path d="M40 60H1060" stroke="#ffffff" stroke-opacity=".1"/>
+  </g>
+
+  <!-- layer boxes -->
+  <g>
+    <rect x="40" y="88" width="286" height="122" rx="4" fill="#15171d" stroke="#ffffff" stroke-opacity=".14"/>
+    <text x="60" y="116" fill="#d4b038" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" letter-spacing="2.6">LAYER 01</text>
+    <text x="60" y="145" fill="#f6f2e9" font-family="Georgia, 'Times New Roman', serif" font-size="25">RF noise</text>
+    <text x="60" y="170" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">physical, non-deterministic</text>
+    <text x="60" y="190" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">atmospheric stochasticity</text>
+  </g>
+  <g>
+    <rect x="406" y="88" width="286" height="122" rx="4" fill="#15171d" stroke="#ffffff" stroke-opacity=".14"/>
+    <text x="426" y="116" fill="#d4b038" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" letter-spacing="2.6">LAYER 02</text>
+    <text x="426" y="145" fill="#f6f2e9" font-family="Georgia, 'Times New Roman', serif" font-size="25">Neural conditioning</text>
+    <text x="426" y="170" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">non-linear feature extraction</text>
+    <text x="426" y="190" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">proprietary architecture</text>
+  </g>
+  <g>
+    <rect x="772" y="88" width="286" height="122" rx="4" fill="#15171d" stroke="#ffffff" stroke-opacity=".14"/>
+    <text x="792" y="116" fill="#d4b038" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" letter-spacing="2.6">LAYER 03</text>
+    <text x="792" y="145" fill="#f6f2e9" font-family="Georgia, 'Times New Roman', serif" font-size="25">SHA-3 / SHAKE-256</text>
+    <text x="792" y="170" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">conditioning only — not the</text>
+    <text x="792" y="190" fill="#8b8f9e" font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11">entropy source itself</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#c4692a" stroke-width="1.4" fill="none">
+    <path d="M326 149H398"/><path d="M388 143l8 6-8 6"/>
+    <path d="M692 149H764"/><path d="M754 143l8 6-8 6"/>
+  </g>
+
+  <!-- output -->
+  <g font-family="SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace">
+    <path d="M915 210v22" stroke="#ffffff" stroke-opacity=".16"/>
+    <text x="40" y="252" fill="#f6f2e9" font-size="12" letter-spacing=".6">OUTPUT</text>
+    <text x="110" y="252" fill="#8b8f9e" font-size="12" letter-spacing=".6">v2_submission/data/v2_random_sample.bin · 11.16 MB · sha256 9e78d28e…3dacd1</text>
+    <text x="40" y="274" fill="#8b8f9e" font-size="11" letter-spacing=".4">What is published is the OUTPUT and the test reports. The generator itself stays closed.</text>
+  </g>
+</svg>
